@@ -67,6 +67,10 @@ class JevNode:
                 ``"allow"`` (default) does nothing extra; ``"human_review"``
                 exposes ``result.requires_review`` for conditional routing;
                 ``"error"`` raises :class:`~langgraph_jev.errors.JevValidationError`.
+
+        Raises:
+            ValueError: If ``thresholds`` contains a key that doesn't match
+                any configured question name.
         """
         self.questions = dict(questions)
         self.client = client or JevClient()
@@ -113,11 +117,25 @@ class JevNode:
         return result
 
     def __call__(self, state: Mapping[str, Any]) -> dict[str, JevResult]:
-        """Evaluate this node's questions against ``state`` synchronously."""
+        """Evaluate this node's questions against ``state`` synchronously.
+
+        Raises:
+            JevValidationError: If ``low_confidence="error"`` and a decision
+                falls below its configured confidence threshold.
+            JevError: For any underlying client failure; see
+                :meth:`~langgraph_jev.client.JevClient.decide`.
+        """
         result = self.client.decide(self._extract_state(state), self.questions)
         return {self.output_key: self._apply_thresholds(result)}
 
     async def ainvoke(self, state: Mapping[str, Any]) -> dict[str, JevResult]:
-        """Evaluate this node's questions against ``state`` asynchronously."""
+        """Evaluate this node's questions against ``state`` asynchronously.
+
+        Raises:
+            JevValidationError: If ``low_confidence="error"`` and a decision
+                falls below its configured confidence threshold.
+            JevError: For any underlying client failure; see
+                :meth:`~langgraph_jev.client.JevClient.adecide`.
+        """
         result = await self.client.adecide(self._extract_state(state), self.questions)
         return {self.output_key: self._apply_thresholds(result)}

@@ -92,6 +92,28 @@ jev = JevNode(
 )
 ```
 
+## Resource cleanup
+
+`JevClient` (and anything built on it, like `JevNode`/`JevRunnable`) opens
+underlying HTTP clients on construction. Close it when you're done, or use
+it as a context manager:
+
+```python
+from langgraph_jev import JevClient, choice
+
+with JevClient() as client:
+    result = client.decide(state={"title": "..."}, questions={"route": choice(["a", "b"])})
+
+# or, in async code:
+async with JevClient() as client:
+    result = await client.adecide(state={"title": "..."}, questions={"route": choice(["a", "b"])})
+```
+
+If you construct a long-lived `JevNode`/`JevRunnable` (e.g. one per graph,
+reused across requests), there's no need to close it per-call -- call
+`client.close()`/`await client.aclose()` once when your application shuts
+down.
+
 ## LangGraph
 
 `JevNode` is directly callable by LangGraph -- it receives graph state and

@@ -76,6 +76,10 @@ class JevClient:
                 ``typesafe_sdk.AsyncTypeSafeClient`` (primarily for tests).
             **kwargs: Additional keyword arguments forwarded to the underlying
                 ``typesafe_sdk`` clients (e.g. ``retry``, ``timeout``).
+
+        Raises:
+            JevConfigurationError: If the underlying ``typesafe_sdk`` clients
+                cannot be constructed (e.g. no API key is available).
         """
         self.model = model or DEFAULT_MODEL
         try:
@@ -89,7 +93,16 @@ class JevClient:
             raise JevConfigurationError(str(exc)) from exc
 
     def decide(self, state: Any, questions: Mapping[str, Question]) -> JevResult:
-        """Evaluate ``questions`` against ``state`` synchronously."""
+        """Evaluate ``questions`` against ``state`` synchronously.
+
+        Raises:
+            JevValidationError: If a question's fields are rejected while
+                translating it into the SDK's request format.
+            JevTimeoutError: If the request times out or fails to connect.
+            JevAPIError: If the Jev API returns an unsuccessful response, or
+                the response is missing an expected answer.
+            JevError: For any other underlying SDK failure.
+        """
         sdk_questions = _to_sdk_questions(questions)
         try:
             response = self._sync.system_one(state, sdk_questions)
@@ -102,7 +115,16 @@ class JevClient:
         return _to_result(response, questions)
 
     async def adecide(self, state: Any, questions: Mapping[str, Question]) -> JevResult:
-        """Evaluate ``questions`` against ``state`` asynchronously."""
+        """Evaluate ``questions`` against ``state`` asynchronously.
+
+        Raises:
+            JevValidationError: If a question's fields are rejected while
+                translating it into the SDK's request format.
+            JevTimeoutError: If the request times out or fails to connect.
+            JevAPIError: If the Jev API returns an unsuccessful response, or
+                the response is missing an expected answer.
+            JevError: For any other underlying SDK failure.
+        """
         sdk_questions = _to_sdk_questions(questions)
         try:
             response = await self._async.system_one(state, sdk_questions)
