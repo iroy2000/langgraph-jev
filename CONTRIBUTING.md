@@ -5,7 +5,7 @@ Thanks for your interest in contributing!
 ## Development setup
 
 ```bash
-git clone https://github.com/langgraph-jev/langgraph-jev.git
+git clone https://github.com/iroy2000/langgraph-jev.git
 cd langgraph-jev
 python3 -m venv .venv
 source .venv/bin/activate

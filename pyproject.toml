@@ -36,10 +36,13 @@ dev = [
     "ruff>=0.6",
     "mypy>=1.11",
 ]
+docs = [
+    "mkdocs-material>=9.5",
+]
 
 [project.urls]
-Homepage = "https://github.com/langgraph-jev/langgraph-jev"
-Issues = "https://github.com/langgraph-jev/langgraph-jev/issues"
+Homepage = "https://github.com/iroy2000/langgraph-jev"
+Issues = "https://github.com/iroy2000/langgraph-jev/issues"
 
 [tool.hatch.version]
 path = "src/langgraph_jev/__init__.py"

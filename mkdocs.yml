@@ -1,0 +1,39 @@
+site_name: langgraph-jev
+site_description: LangGraph/LangChain integration for TypeSafe's Jev decision API
+site_url: https://iroy2000.github.io/langgraph-jev/
+repo_url: https://github.com/iroy2000/langgraph-jev
+repo_name: iroy2000/langgraph-jev
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - content.code.copy
+    - toc.follow
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - tables
+
+nav:
+  - Home: index.md
+  - Quick start: quickstart.md
+  - API reference: api.md
+  - Examples: examples.md

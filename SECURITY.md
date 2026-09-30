@@ -6,7 +6,7 @@ If you discover a security vulnerability in `langgraph-jev` (for example, a
 way the library could leak an API key, credentials, or other sensitive
 state), please **do not** open a public GitHub issue.
 
-Instead, report it privately via [GitHub Security Advisories](https://github.com/langgraph-jev/langgraph-jev/security/advisories/new)
+Instead, report it privately via [GitHub Security Advisories](https://github.com/iroy2000/langgraph-jev/security/advisories/new)
 for this repository. We'll acknowledge the report, investigate, and publish
 a fix and advisory once a patch is available.
 

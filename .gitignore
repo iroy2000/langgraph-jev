@@ -13,3 +13,5 @@ build/
 .coverage
 htmlcov/
 .DS_Store
+.git-credentials-iroy2000
+site/
