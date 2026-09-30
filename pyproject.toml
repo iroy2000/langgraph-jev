@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "langgraph-jev"
-version = "0.1.0"
+dynamic = ["version"]
 description = "A typed probabilistic decision node for LangGraph, powered by TypeSafe's Jev."
 readme = "README.md"
 license = "MIT"
@@ -40,6 +40,9 @@ dev = [
 [project.urls]
 Homepage = "https://github.com/langgraph-jev/langgraph-jev"
 Issues = "https://github.com/langgraph-jev/langgraph-jev/issues"
+
+[tool.hatch.version]
+path = "src/langgraph_jev/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/langgraph_jev"]

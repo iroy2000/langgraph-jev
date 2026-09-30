@@ -34,6 +34,10 @@ class JevAPIError(JevError):
         status: int | None = None,
         request_id: str | None = None,
     ) -> None:
+        if status is not None:
+            message = f"{message} (status={status})"
+        if request_id is not None:
+            message = f"{message} (request_id={request_id})"
         super().__init__(message)
         self.status = status
         self.request_id = request_id

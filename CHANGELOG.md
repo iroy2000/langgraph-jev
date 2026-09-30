@@ -18,3 +18,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Synchronous and asynchronous APIs (`decide`/`adecide`, `invoke`/`ainvoke`).
 - Examples: `basic.py`, `langgraph_basic.py`, `confidence_routing.py`,
   `work_ticket.py`, `multi_agent.py`.
+- `py.typed` marker (the package is PEP 561-typed).
+- Sync/async context manager support on `JevClient`.
+- `SECURITY.md` with a private vulnerability-reporting policy.
+
+### Fixed
+
+- `JevRunnable.invoke`/`ainvoke` now go through LangChain's
+  `_call_with_config`/`_acall_with_config`, so callbacks (e.g. LangSmith
+  tracing) and `RunnableConfig` (`tags`, `metadata`, `run_name`) work as
+  expected for a LangChain `Runnable`.
+- `JevNode` now raises `ValueError` at construction time if a `thresholds`
+  key doesn't match any configured question name, instead of silently
+  ignoring it.
+- `JevNode` warns if a confidence threshold is configured on a `boolean()`
+  question, which never reports a confidence score.
+- Errors raised while translating typed questions into `typesafe-sdk`
+  question objects (e.g. invalid `criteria`) are now wrapped in
+  `JevValidationError` instead of leaking a raw `pydantic.ValidationError`.
+- A Jev response missing an expected answer now raises a clear
+  `JevAPIError` instead of an unhandled `KeyError`.
+- `JevAPIError`'s message now includes `status`/`request_id` when present.
+- The package version is now defined in exactly one place
+  (`langgraph_jev.__version__`), read by `pyproject.toml` via Hatch's
+  dynamic versioning, instead of being duplicated across two files.
+- Removed the redundant `License :: OSI Approved :: MIT License` classifier
+  now that `pyproject.toml` uses the PEP 639 SPDX license expression.

@@ -15,6 +15,11 @@ from .questions import Question
 class JevRunnable(Runnable[Any, JevResult]):
     """Evaluate Jev questions as a standard LangChain ``Runnable``.
 
+    Implements ``invoke``/``ainvoke`` via :meth:`Runnable._call_with_config` /
+    :meth:`Runnable._acall_with_config` so that LangChain callbacks (e.g.
+    LangSmith tracing) and ``RunnableConfig`` (``tags``, ``metadata``,
+    ``run_name``) behave the same as any other Runnable in a chain.
+
     Example:
         ```python
         from langgraph_jev import JevRunnable, choice
@@ -31,9 +36,17 @@ class JevRunnable(Runnable[Any, JevResult]):
         self.client = client or JevClient()
 
     def invoke(self, input: Any, config: RunnableConfig | None = None, **kwargs: Any) -> JevResult:
-        return self.client.decide(input, self.questions)
+        return self._call_with_config(
+            lambda inner: self.client.decide(inner, self.questions),
+            input,
+            config,
+            run_type="chain",
+        )
 
     async def ainvoke(
         self, input: Any, config: RunnableConfig | None = None, **kwargs: Any
     ) -> JevResult:
-        return await self.client.adecide(input, self.questions)
+        async def _decide(inner: Any) -> JevResult:
+            return await self.client.adecide(inner, self.questions)
+
+        return await self._acall_with_config(_decide, input, config, run_type="chain")
