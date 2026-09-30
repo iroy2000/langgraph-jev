@@ -76,7 +76,12 @@ class JevNode:
         self.low_confidence: LowConfidencePolicy = low_confidence
         for field in self.thresholds:
             question = self.questions.get(field)
-            if question is not None and question.type == "boolean":
+            if question is None:
+                raise ValueError(
+                    f"Threshold configured for {field!r}, but no question with that "
+                    f"name is configured. Configured questions: {sorted(self.questions)!r}"
+                )
+            if question.type == "boolean":
                 warnings.warn(
                     f"A confidence threshold is configured for {field!r}, but it is a "
                     "boolean() question (Jev Noul), which never reports a confidence "

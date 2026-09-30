@@ -215,10 +215,14 @@ from langgraph_jev import (
     choice,
     boolean,
     score,
+    route_by_decision,
 )
 ```
 
-That's the whole surface area you need to understand this package.
+That's the whole surface area you need to understand this package. Errors
+(`JevError` and its subclasses `JevConfigurationError`, `JevAPIError`,
+`JevTimeoutError`, `JevValidationError`) and the result types (`JevDecision`,
+`JevResult`) are also exported for type annotations and `except` clauses.
 
 ## Development
 
@@ -226,11 +230,13 @@ That's the whole surface area you need to understand this package.
 pip install -e ".[dev]"
 pytest
 ruff check .
+ruff format .
 mypy src
 ```
 
 Tests use a fake/mock Jev transport and never require a real
-`TYPESAFE_API_KEY`.
+`TYPESAFE_API_KEY`. CI runs `ruff check`, `ruff format --check`, `mypy`, and
+`pytest` on Python 3.11-3.13.
 
 ## License
 

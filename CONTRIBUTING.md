@@ -17,10 +17,12 @@ pip install -e ".[dev]"
 ```bash
 pytest
 ruff check .
+ruff format --check .
 mypy src
 ```
 
-All three must pass before a PR is merged.
+All four must pass before a PR is merged. Run `ruff format .` (without
+`--check`) to auto-fix formatting.
 
 ## Guidelines
 

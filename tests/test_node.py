@@ -171,3 +171,23 @@ def test_threshold_on_boolean_question_warns() -> None:
             client=client,
             thresholds={"is_bug": 0.9},
         )
+
+
+def test_threshold_on_unknown_field_raises() -> None:
+    client = _client_for(
+        {
+            "work_type": {
+                "type": "choice",
+                "choice": "bug",
+                "probabilities": {"bug": 1.0},
+                "confidence": 1.0,
+            }
+        }
+    )
+
+    with pytest.raises(ValueError, match="wrok_type"):
+        JevNode(
+            questions={"work_type": choice(["bug", "support"])},
+            client=client,
+            thresholds={"wrok_type": 0.9},
+        )
