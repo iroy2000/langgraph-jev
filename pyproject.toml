@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "langgraph-jev"
+version = "0.1.0"
+description = "A typed probabilistic decision node for LangGraph, powered by TypeSafe's Jev."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [{ name = "langgraph-jev contributors" }]
+keywords = ["langgraph", "langchain", "jev", "typesafe", "agents", "decision"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Typed",
+]
+dependencies = [
+    "langgraph>=0.2",
+    "langchain-core>=0.3",
+    "typesafe-sdk>=0.7",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.6",
+    "mypy>=1.11",
+]
+
+[project.urls]
+Homepage = "https://github.com/langgraph-jev/langgraph-jev"
+Issues = "https://github.com/langgraph-jev/langgraph-jev/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/langgraph_jev"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+packages = ["langgraph_jev"]
