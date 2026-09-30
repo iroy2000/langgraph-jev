@@ -1,63 +1,20 @@
 # langgraph-jev
 
-`langgraph-jev` is an open-source LangGraph/LangChain integration that exposes
-[Jev](https://docs.typesafe.ai/introduction) as a typed probabilistic decision
-node.
+`langgraph-jev` is an open-source LangGraph/LangChain integration for
+[Jev](https://docs.typesafe.ai/introduction), TypeSafe's typed probabilistic
+decision API. `JevNode` wraps it as a decision node you drop into an agent
+graph -- it's not an LLM and not an LLM wrapper.
 
-**Jev is a typed probabilistic decision layer.** It is not an LLM, and this
-package is not an LLM wrapper. `JevNode` is a decision primitive you compose
-into an agent graph.
+Jev evaluates typed *questions* against *state* and returns typed answers with
+probabilities and confidence attached. There's no text generation and nothing
+to parse -- your code branches on, sorts by, and routes with the result
+directly.
 
-```text
-Decision != Execution
-Jev      != Worker Agent
-```
-
-## Why?
-
-```text
-Traditional agent:
-  Input -> LLM -> decide -> execute
-
-This package:
-  Input -> understand -> Jev decision -> typed contract -> execute
-```
-
-Jev evaluates typed *questions* against *state* and returns typed answers plus
-probabilities and confidence -- no text generation, no parsing. Your code
-branches on, sorts by, and routes with the result directly.
-
-## Architecture
-
-```text
-┌──────────────────────────────┐
-│       User / Application     │
-└──────────────┬───────────────┘
-               │
-               ▼
-        ┌──────────────┐
-        │ Understand   │
-        │    Agent     │
-        └──────┬───────┘
-               │
-               ▼
-        ┌──────────────┐
-        │    JevNode   │
-        │              │
-        │ Typed        │
-        │ Decisions    │
-        └──────┬───────┘
-               │
-               ▼
-        ┌──────────────┐
-        │ WorkTicket   │
-        │   Contract   │
-        └──────┬───────┘
-               │
-       ┌───────┼───────┐
-       ▼       ▼       ▼
-     Agent   Agent   Agent
-```
+For example, a `work_ticket` graph might run an "understand" step over a
+customer request, hand the structured output to a `JevNode` for typed
+decisions (work type, priority, whether it needs an engineer), and then route
+to a coding, support, or docs worker based on those decisions. See
+`examples/work_ticket.py` for the full version of this.
 
 ## Installation
 
@@ -91,6 +48,11 @@ jev = JevNode(
     }
 )
 ```
+
+Running `examples/basic.py` against a real state produces typed decisions
+with confidence scores, not free text:
+
+![Terminal output of examples/basic.py](docs/screenshots/basic-example.png)
 
 ## Resource cleanup
 
@@ -185,8 +147,8 @@ do with it. Routing stays deterministic.
 
 ## WorkTicket example
 
-**Jev does NOT generate the entire `WorkTicket`.** Jev provides decisions;
-application code constructs the canonical, typed contract:
+Jev doesn't generate the `WorkTicket` itself -- it provides the decisions,
+and your application code builds the typed contract from them:
 
 ```python
 decision = state["decision"]
@@ -203,8 +165,11 @@ ticket = WorkTicket(
 )
 ```
 
-See `examples/work_ticket.py` for the full flagship example: Understand ->
-Jev -> WorkTicket -> Coding / Support / Docs workers.
+![Terminal output of examples/work_ticket.py](docs/screenshots/work-ticket-example.png)
+
+See `examples/work_ticket.py` for the full example: an understand step feeds
+Jev, Jev's decisions build a `WorkTicket`, and the ticket routes to a coding,
+support, or docs worker.
 
 ## LangChain Runnable
 
@@ -224,7 +189,7 @@ Supports both `invoke()` and `ainvoke()`.
 | `examples/basic.py` | Minimal `JevClient` usage |
 | `examples/langgraph_basic.py` | A minimal LangGraph graph with a `JevNode` |
 | `examples/confidence_routing.py` | Thresholds and `low_confidence="human_review"` |
-| `examples/work_ticket.py` | The flagship `WorkTicket` contract example |
+| `examples/work_ticket.py` | Building a `WorkTicket` from Jev's decisions |
 | `examples/multi_agent.py` | Full graph: understand -> Jev -> ticket -> routed workers |
 
 ## Public API
@@ -241,10 +206,10 @@ from langgraph_jev import (
 )
 ```
 
-That's the whole surface area you need to understand this package. Errors
-(`JevError` and its subclasses `JevConfigurationError`, `JevAPIError`,
-`JevTimeoutError`, `JevValidationError`) and the result types (`JevDecision`,
-`JevResult`) are also exported for type annotations and `except` clauses.
+That's the full public API. Errors (`JevError` and its subclasses
+`JevConfigurationError`, `JevAPIError`, `JevTimeoutError`,
+`JevValidationError`) and the result types (`JevDecision`, `JevResult`) are
+also exported for type annotations and `except` clauses.
 
 ## Development
 

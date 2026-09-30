@@ -44,3 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   dynamic versioning, instead of being duplicated across two files.
 - Removed the redundant `License :: OSI Approved :: MIT License` classifier
   now that `pyproject.toml` uses the PEP 639 SPDX license expression.
+- `score()` no longer falls back to the default three-level rubric when
+  called with an explicit empty list (`score([])`); the empty list is now
+  passed through and rejected by the API, rather than silently replaced.
+- Added `Raises:` sections to the docstrings of `JevClient.__init__`,
+  `decide`/`adecide`, and `JevNode.__init__`/`__call__`/`ainvoke`, and
+  documented `JevClient`'s context-manager support in the README (it was
+  implemented but previously undocumented).
