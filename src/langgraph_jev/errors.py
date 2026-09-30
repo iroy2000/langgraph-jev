@@ -44,9 +44,10 @@ class JevTimeoutError(JevError):
 
 
 class JevValidationError(JevError):
-    """Raised when a Jev decision fails validation.
+    """Raised when a Jev decision or question definition fails validation.
 
     For example, this is raised when :class:`~langgraph_jev.node.JevNode` is
     configured with ``low_confidence="error"`` and a decision falls below its
-    configured confidence threshold.
+    configured confidence threshold, or when a question's fields (e.g.
+    ``criteria``) are rejected by the underlying ``typesafe-sdk`` models.
     """

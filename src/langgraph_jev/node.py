@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Mapping
 from typing import Any, Literal
 
@@ -73,6 +74,16 @@ class JevNode:
         self.output_key = output_key
         self.thresholds = dict(thresholds or {})
         self.low_confidence: LowConfidencePolicy = low_confidence
+        for field in self.thresholds:
+            question = self.questions.get(field)
+            if question is not None and question.type == "boolean":
+                warnings.warn(
+                    f"A confidence threshold is configured for {field!r}, but it is a "
+                    "boolean() question (Jev Noul), which never reports a confidence "
+                    "score. This threshold will have no effect.",
+                    UserWarning,
+                    stacklevel=2,
+                )
 
     def _extract_state(self, graph_state: Mapping[str, Any]) -> Any:
         if self.state_key is None:

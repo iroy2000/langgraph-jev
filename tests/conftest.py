@@ -37,6 +37,7 @@ class FakeSyncClient:
         self.response = response
         self.error = error
         self.calls: list[tuple[Any, Any]] = []
+        self.closed = False
 
     def system_one(self, state: Any, questions: Any, **kwargs: Any) -> SystemOneResponse:
         self.calls.append((state, questions))
@@ -46,7 +47,7 @@ class FakeSyncClient:
         return self.response
 
     def close(self) -> None:
-        pass
+        self.closed = True
 
 
 class FakeAsyncClient:
@@ -58,6 +59,7 @@ class FakeAsyncClient:
         self.response = response
         self.error = error
         self.calls: list[tuple[Any, Any]] = []
+        self.closed = False
 
     async def system_one(self, state: Any, questions: Any, **kwargs: Any) -> SystemOneResponse:
         self.calls.append((state, questions))
@@ -66,8 +68,8 @@ class FakeAsyncClient:
         assert self.response is not None
         return self.response
 
-    async def close(self) -> None:
-        pass
+    async def aclose(self) -> None:
+        self.closed = True
 
 
 def make_client(

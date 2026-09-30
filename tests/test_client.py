@@ -7,7 +7,7 @@ import pytest
 from typesafe_sdk import TypeSafeAPIConnectionError, TypeSafeAuthenticationError, TypeSafeError
 
 from langgraph_jev import boolean, choice, score
-from langgraph_jev.errors import JevAPIError, JevError, JevTimeoutError
+from langgraph_jev.errors import JevAPIError, JevError, JevTimeoutError, JevValidationError
 from tests.conftest import FakeAsyncClient, FakeSyncClient, make_client, make_response
 
 
@@ -130,3 +130,57 @@ async def test_adecide_maps_api_error() -> None:
 
     with pytest.raises(JevAPIError):
         await client.adecide(state="x", questions={"q": boolean()})
+
+
+def test_decide_raises_clear_error_when_response_missing_answer() -> None:
+    response = make_response({})
+    client = make_client(response)
+
+    with pytest.raises(JevAPIError, match="is_bug"):
+        client.decide(state="x", questions={"is_bug": boolean()})
+
+
+def test_invalid_noul_criteria_raises_jev_validation_error() -> None:
+    client = make_client(make_response({}))
+
+    with pytest.raises(JevValidationError):
+        client.decide(
+            state="x",
+            questions={"is_bug": boolean(criteria={"unexpected_key": "nope"})},
+        )
+
+
+def test_context_manager_closes_sync_client() -> None:
+    sync = FakeSyncClient(make_response({}))
+    from langgraph_jev import JevClient
+
+    client = JevClient(sync_client=sync, async_client=FakeAsyncClient(make_response({})))
+    with client:
+        pass
+
+    assert sync.closed is True
+
+
+async def test_async_context_manager_closes_async_client() -> None:
+    aio = FakeAsyncClient(make_response({}))
+    from langgraph_jev import JevClient
+
+    client = JevClient(sync_client=FakeSyncClient(make_response({})), async_client=aio)
+    async with client:
+        pass
+
+    assert aio.closed is True
+
+
+def test_configuration_error_wraps_sdk_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    from langgraph_jev import JevClient
+    from langgraph_jev import client as client_module
+    from langgraph_jev.errors import JevConfigurationError
+
+    def _raise(*args: object, **kwargs: object) -> None:
+        raise TypeSafeError("missing api key")
+
+    monkeypatch.setattr(client_module, "TypeSafeClient", _raise)
+
+    with pytest.raises(JevConfigurationError):
+        JevClient()

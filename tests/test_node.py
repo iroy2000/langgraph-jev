@@ -160,3 +160,14 @@ def test_decision_meeting_threshold_does_not_require_review() -> None:
 
     assert update["decision"].requires_review is False
     assert update["decision"].decisions["work_type"].meets_threshold is True
+
+
+def test_threshold_on_boolean_question_warns() -> None:
+    client = _client_for({"is_bug": {"type": "noul", "noul": 1.0}})
+
+    with pytest.warns(UserWarning, match="boolean"):
+        JevNode(
+            questions={"is_bug": boolean()},
+            client=client,
+            thresholds={"is_bug": 0.9},
+        )

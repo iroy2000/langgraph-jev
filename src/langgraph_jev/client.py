@@ -11,8 +11,10 @@ exceptions onto this package's error hierarchy.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from types import TracebackType
 from typing import Any
 
+from pydantic import ValidationError
 from typesafe_sdk import (
     AsyncTypeSafeClient,
     SystemOneResponse,
@@ -23,7 +25,13 @@ from typesafe_sdk import (
 )
 
 from .config import DEFAULT_MODEL
-from .errors import JevAPIError, JevConfigurationError, JevError, JevTimeoutError
+from .errors import (
+    JevAPIError,
+    JevConfigurationError,
+    JevError,
+    JevTimeoutError,
+    JevValidationError,
+)
 from .models import JevDecision, JevResult
 from .questions import Question
 
@@ -82,10 +90,9 @@ class JevClient:
 
     def decide(self, state: Any, questions: Mapping[str, Question]) -> JevResult:
         """Evaluate ``questions`` against ``state`` synchronously."""
+        sdk_questions = _to_sdk_questions(questions)
         try:
-            response = self._sync.system_one(
-                state, {key: q.to_sdk() for key, q in questions.items()}
-            )
+            response = self._sync.system_one(state, sdk_questions)
         except TypeSafeAPIConnectionError as exc:
             raise JevTimeoutError(str(exc)) from exc
         except TypeSafeAPIError as exc:
@@ -96,10 +103,9 @@ class JevClient:
 
     async def adecide(self, state: Any, questions: Mapping[str, Question]) -> JevResult:
         """Evaluate ``questions`` against ``state`` asynchronously."""
+        sdk_questions = _to_sdk_questions(questions)
         try:
-            response = await self._async.system_one(
-                state, {key: q.to_sdk() for key, q in questions.items()}
-            )
+            response = await self._async.system_one(state, sdk_questions)
         except TypeSafeAPIConnectionError as exc:
             raise JevTimeoutError(str(exc)) from exc
         except TypeSafeAPIError as exc:
@@ -116,33 +122,74 @@ class JevClient:
         """Release the underlying asynchronous HTTP client's resources."""
         await self._async.aclose()
 
+    def __enter__(self) -> JevClient:
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        self.close()
+
+    async def __aenter__(self) -> JevClient:
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        await self.aclose()
+
+
+def _to_sdk_questions(questions: Mapping[str, Question]) -> dict[str, Any]:
+    """Translate typed questions to the SDK's question objects.
+
+    Raises:
+        JevValidationError: If a question's fields fail the SDK's own
+            validation (e.g. unsupported ``criteria`` keys).
+    """
+    try:
+        return {key: q.to_sdk() for key, q in questions.items()}
+    except ValidationError as exc:
+        raise JevValidationError(f"Invalid question definition: {exc}") from exc
+
 
 def _to_result(response: SystemOneResponse, questions: Mapping[str, Question]) -> JevResult:
     decisions: dict[str, JevDecision] = {}
     for key, question in questions.items():
-        if question.type == "boolean":
-            noul_answer = response.nouls[key]
-            decisions[key] = JevDecision(field=key, type="boolean", value=noul_answer.noul)
-        elif question.type == "choice":
-            choice_answer = response.choices[key]
-            decisions[key] = JevDecision(
-                field=key,
-                type="choice",
-                value=choice_answer.choice,
-                confidence=choice_answer.confidence,
-                probabilities=dict(choice_answer.probabilities),
-            )
-        else:
-            score_answer = response.scores[key]
-            decisions[key] = JevDecision(
-                field=key,
-                type="score",
-                value=score_answer.score,
-                confidence=score_answer.confidence,
-                probabilities={
-                    str(level): value for level, value in score_answer.probabilities.items()
-                },
-            )
+        try:
+            if question.type == "boolean":
+                noul_answer = response.nouls[key]
+                decisions[key] = JevDecision(field=key, type="boolean", value=noul_answer.noul)
+            elif question.type == "choice":
+                choice_answer = response.choices[key]
+                decisions[key] = JevDecision(
+                    field=key,
+                    type="choice",
+                    value=choice_answer.choice,
+                    confidence=choice_answer.confidence,
+                    probabilities=dict(choice_answer.probabilities),
+                )
+            else:
+                score_answer = response.scores[key]
+                decisions[key] = JevDecision(
+                    field=key,
+                    type="score",
+                    value=score_answer.score,
+                    confidence=score_answer.confidence,
+                    probabilities={
+                        str(level): value for level, value in score_answer.probabilities.items()
+                    },
+                )
+        except KeyError as exc:
+            raise JevAPIError(
+                f"Jev response did not include an answer for question {key!r} "
+                f"(type={question.type!r})."
+            ) from exc
     usage = {
         "input_tokens": response.usage.input_tokens,
         "output_tokens": response.usage.output_tokens,
