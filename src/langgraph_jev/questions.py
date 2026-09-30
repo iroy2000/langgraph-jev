@@ -90,7 +90,10 @@ def boolean(
     ``criteria`` optionally describes what a "true" and "false" answer mean,
     via the keys ``"true"`` and ``"false"``.
     """
-    return BooleanQuestion(instructions=instructions, criteria=dict(criteria) if criteria else None)
+    return BooleanQuestion(
+        instructions=instructions,
+        criteria=dict(criteria) if criteria is not None else None,
+    )
 
 
 def score(
@@ -104,5 +107,6 @@ def score(
     starting at zero. Defaults to a generic three-level rubric if omitted.
     """
     return ScoreQuestion(
-        criteria=list(levels) if levels else ["low", "medium", "high"], instructions=instructions
+        criteria=list(levels) if levels is not None else ["low", "medium", "high"],
+        instructions=instructions,
     )

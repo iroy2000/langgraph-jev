@@ -57,6 +57,22 @@ def test_score_default_levels() -> None:
     assert isinstance(sdk, SdkScore)
 
 
+def test_score_explicit_empty_levels_is_not_silently_replaced_by_default() -> None:
+    """An explicitly empty list is a caller mistake, not a request for the default.
+
+    Regression test: score() previously used a falsy check (`if levels`), which
+    treated `score([])` identically to `score()`, silently masking the caller's
+    (invalid) input behind an unrelated 3-level default.
+    """
+    q = score([])
+    assert q.criteria == []
+
+
+def test_boolean_explicit_empty_criteria_preserved() -> None:
+    q = boolean(criteria={})
+    assert q.criteria == {}
+
+
 def test_score_with_custom_levels() -> None:
     q = score(["calm", "frustrated", "angry"], instructions="Rate frustration")
     dumped = q.to_sdk().model_dump()
