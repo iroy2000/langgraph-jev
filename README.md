@@ -71,6 +71,15 @@ Set your API key (never commit it):
 export TYPESAFE_API_KEY=...
 ```
 
+The examples in `examples/` also support a project-local `.env` file (already
+covered by `.gitignore`) via optional `python-dotenv` support:
+
+```bash
+pip install "langgraph-jev[examples]"
+echo "TYPESAFE_API_KEY=..." > .env
+python examples/basic.py
+```
+
 ## Quick start
 
 ```python

@@ -12,6 +12,13 @@ Requires TYPESAFE_API_KEY to be set in the environment. Run with:
 
 from __future__ import annotations
 
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    pass
+
 from typing import Literal
 
 from pydantic import BaseModel
